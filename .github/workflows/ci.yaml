@@ -53,8 +53,6 @@ jobs:
         with:
           version: 10.14.0
           run_install: true
-          # if you prefer strict lockfile, switch to --frozen-lockfile
-          run_install_args: --no-frozen-lockfile
 
       - name: Cache pnpm store
         uses: actions/cache@v4
