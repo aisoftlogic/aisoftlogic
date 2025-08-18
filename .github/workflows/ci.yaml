@@ -32,10 +32,15 @@ jobs:
           node-version: "20"
           cache: "pnpm"
 
-      - name: Enable Corepack & activate pnpm
+      # Enable Corepack globally
+      - name: Enable Corepack
+        run: corepack enable
+
+      # Activate pnpm using web/package.json's packageManager field
+      - name: Activate pnpm from web/package.json
+        working-directory: web
         run: |
-          corepack enable
-          corepack install       # respects packageManager in package.json
+          corepack install
           pnpm -v
 
       - name: Install web deps
