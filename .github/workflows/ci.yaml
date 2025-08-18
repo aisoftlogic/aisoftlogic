@@ -2,53 +2,69 @@ name: CI
 
 on:
   push:
+    branches: [ "**" ]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
-  ci:
+  api:
+    name: API (pytest)
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: api
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      # ---- API (Python) ----
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install API deps
-        working-directory: api
+      - name: Install deps
         run: pip install -r requirements.txt
 
-      - name: Run API tests
-        working-directory: api
+      - name: Run tests
         env:
           PYTHONPATH: ${{ github.workspace }}/api
         run: pytest -q
 
-      # ---- Web (Node + pnpm) ----
-      - uses: actions/setup-node@v4
+  web:
+    name: Web (vitest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "pnpm"
 
-      # Enable Corepack globally
-      - name: Enable Corepack
-        run: corepack enable
+      # This guarantees pnpm is available on PATH (no Corepack dependence)
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.14.0
+          run_install: true
+          # if you prefer strict lockfile, switch to --frozen-lockfile
+          run_install_args: --no-frozen-lockfile
 
-      # Activate pnpm using web/package.json's packageManager field
-      - name: Activate pnpm from web/package.json
-        working-directory: web
-        run: |
-          corepack install
-          pnpm -v
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('web/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
-      - name: Install web deps
-        working-directory: web
-        run: pnpm install --frozen-lockfile=false
-
-      - name: Run web tests
-        working-directory: web
+      - name: Run vitest
         env:
           NODE_ENV: test
         run: pnpm vitest run
