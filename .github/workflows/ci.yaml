@@ -1,34 +1,49 @@
-name: ci
+name: CI
 
 on:
   push:
   pull_request:
 
 jobs:
-  api:
+  ci:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: api
+
     steps:
       - uses: actions/checkout@v4
+
+      # ---- API (Python) ----
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
-      - run: pip install -r requirements.txt
-      - run: pytest -q
+          python-version: "3.12"
 
-  web:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web
-    steps:
-      - uses: actions/checkout@v4
+      - name: Install API deps
+        working-directory: api
+        run: pip install -r requirements.txt
+
+      - name: Run API tests
+        working-directory: api
+        env:
+          PYTHONPATH: ${{ github.workspace }}/api
+        run: pytest -q
+
+      # ---- Web (Node + pnpm) ----
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'pnpm'
-      - run: corepack enable
-      - run: pnpm install --no-frozen-lockfile
-      - run: pnpm vitest run
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Enable Corepack & activate pnpm
+        run: |
+          corepack enable
+          corepack install       # respects packageManager in package.json
+          pnpm -v
+
+      - name: Install web deps
+        working-directory: web
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Run web tests
+        working-directory: web
+        env:
+          NODE_ENV: test
+        run: pnpm vitest run
