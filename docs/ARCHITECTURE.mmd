@@ -1,0 +1,32 @@
+flowchart LR
+  subgraph User
+    U1[Customer Admin]
+    U2[Operator]
+  end
+  U1-- "Browser" -->WEB
+  U2-- "Browser" -->WEB
+  WEB-- "REST" -->API
+  API-->REDIS[(Redis)]
+  API-->DB[(Postgres)]
+  API-->S3[(MinIO S3)]
+  API-->KC[(Keycloak)]:::ext
+
+  classDef ext fill:#fff,stroke:#888;
+
+%% Separate diagrams must not be mixed in one block
+%% Below is the sequence diagram in a separate Mermaid block
+
+%% Uncomment and use in a separate Mermaid block/file if needed:
+%% sequenceDiagram
+%%   participant Web
+%%   participant API
+%%   participant Agent as Agent SDK
+%%   participant MCP as MCP Clients
+%%   participant RAG as Vector Store
+%%   Web->>API: create job (network diagnose)
+%%   API->>Agent: plan()
+%%   Agent->>RAG: retrieve context
+%%   Agent->>MCP: run tools (SSH, SNMP, ping)
+%%   MCP-->>Agent: results
+%%   Agent-->>API: status + artifacts
+%%   API-->>Web: stream logs

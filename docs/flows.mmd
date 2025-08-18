@@ -1,0 +1,11 @@
+flowchart TD
+  A[make up]
+  B[compose healthchecks gate start]
+  C[make smoke-curls -> waits -> curls]
+  D[make test -> vitest + pytest]
+  E[CI green]
+
+  A --> B
+  B --> C
+  C --> D
+  D --> E
