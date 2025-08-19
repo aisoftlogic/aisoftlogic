@@ -1,0 +1,48 @@
+erDiagram
+  ORGANIZATIONS ||--o{ TEAMS : has
+  ORGANIZATIONS ||--o{ MEMBERSHIPS : has
+  USERS ||--o{ MEMBERSHIPS : has
+  ORGANIZATIONS ||--o{ SUBSCRIPTIONS : has
+  ORGANIZATIONS ||--o{ USAGE : has
+  ORGANIZATIONS ||--o{ AUDIT_LOG : has
+
+  ORGANIZATIONS {
+    uuid id
+    text name
+    timestamptz created_at
+  }
+  TEAMS {
+    uuid id
+    uuid org_id
+    text name
+  }
+  USERS {
+    text id
+  }
+  MEMBERSHIPS {
+    uuid id
+    text user_id
+    uuid org_id
+    text role
+  }
+  SUBSCRIPTIONS {
+    uuid id
+    uuid org_id
+    text plan
+    text status
+  }
+  USAGE {
+    uuid id
+    uuid org_id
+    text metric
+    text window
+    int count
+  }
+  AUDIT_LOG {
+    uuid id
+    uuid org_id
+    text actor_id
+    text action
+    jsonb meta
+    timestamptz at
+  }

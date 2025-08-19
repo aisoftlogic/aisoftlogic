@@ -1,0 +1,14 @@
+sequenceDiagram
+  participant User
+  participant Web
+  participant Keycloak
+  participant API
+
+  User->>Web: Open app
+  Web->>Keycloak: PKCE auth request
+  Keycloak-->>Web: auth code
+  Web->>Keycloak: exchange code (PKCE)
+  Keycloak-->>Web: id_token + access_token
+  Web->>API: Authorization: Bearer <access>
+  API->>Keycloak: fetch JWKS (cached)
+  API-->>Web: 200 (user/org/roles)

@@ -100,12 +100,19 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:25.0.6
-    command: ["start-dev", "--http-port=8081", "--spi-login-protocol-openid-connect-legacy-logout-redirect-uri=true"]
+    command:
+      - start-dev
+      - --http-port=8081
+      - --hostname=http://localhost:8081
+      - --spi-login-protocol-openid-connect-legacy-logout-redirect-uri=true
+      - --import-realm
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-    ports: [ "8081:8081" ]
-    # (no healthcheck; we wait via curls in smoke.sh)
+    volumes:
+      - ./keycloak/import/aisoftlogic-realm.json:/opt/keycloak/data/import/aisoftlogic-realm.json:ro
+    ports:
+      - "8081:8081"
 
 networks:
-  default: {}
+  default: {}                                                                  

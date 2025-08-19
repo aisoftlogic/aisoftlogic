@@ -1,0 +1,33 @@
+{
+  "realm": "aisoftlogic",
+  "enabled": true,
+  "displayName": "AiSoftLogic",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "sslRequired": "external",
+  "roles": {
+    "realm": [
+      { "name": "org_admin", "description": "Organization administrator" },
+      { "name": "member", "description": "Standard member" }
+    ]
+  },
+  "groups": [
+    { "name": "org-admins", "realmRoles": ["org_admin"] },
+    { "name": "org-members", "realmRoles": ["member"] }
+  ],
+  "clients": [
+    {
+      "clientId": "web",
+      "name": "Web App",
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["http://localhost:3000/*"],
+      "webOrigins": ["http://localhost:3000"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    }
+  ]
+}
