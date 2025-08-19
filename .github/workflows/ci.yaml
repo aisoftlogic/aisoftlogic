@@ -8,6 +8,11 @@ on:
 permissions:
   contents: read
 
+# avoid overlapping CI on the same ref
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   api:
     name: API (pytest)
@@ -23,6 +28,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: "pip"             # ✅ speed up pip installs
 
       - name: Install deps
         run: pip install -r requirements.txt
@@ -46,23 +52,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: pnpm               # ✅ built-in pnpm cache keyed by pnpm-lock.yaml
+          cache-dependency-path: web/pnpm-lock.yaml
 
-      # This guarantees pnpm is available on PATH (no Corepack dependence)
+      # Keep this — it guarantees pnpm on PATH and runs install
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.14.0
-          run_install: true
-
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('web/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
+          run_install: true         # runs `pnpm install` in ./web by default
 
       - name: Run vitest
         env:
           NODE_ENV: test
+          CI: "true"
         run: pnpm vitest run
