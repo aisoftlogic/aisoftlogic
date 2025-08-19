@@ -8,7 +8,6 @@ on:
 permissions:
   contents: read
 
-# avoid overlapping CI on the same ref
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -28,7 +27,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: "pip"             # ✅ speed up pip installs
+          cache: "pip"
 
       - name: Install deps
         run: pip install -r requirements.txt
@@ -48,20 +47,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: pnpm               # ✅ built-in pnpm cache keyed by pnpm-lock.yaml
-          cache-dependency-path: web/pnpm-lock.yaml
-
-      # Keep this — it guarantees pnpm on PATH and runs install
+      # 1) Install pnpm first so setup-node can use it for caching
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.14.0
-          run_install: true         # runs `pnpm install` in ./web by default
+          run_install: false    # we'll install after caching is set up
 
+      # 2) Now setup Node and enable pnpm cache (this calls `pnpm store path`)
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      # 3) Install deps
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+
+      # 4) Run tests
       - name: Run vitest
         env:
           NODE_ENV: test
